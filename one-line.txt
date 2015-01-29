@@ -1,0 +1,3 @@
+05 REM http://nickm.com/post/2010/07/one-line-c64-basic-music/
+10 REM poke 54272+rnd(1)*25,rnd(1)*256 : goto 10
+20 poke 54296,15 : poke 54272+rnd(1)*23,rnd(1)*128+rnd(1)*128:goto 20
