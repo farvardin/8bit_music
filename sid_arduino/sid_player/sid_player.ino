@@ -1,4 +1,7 @@
 /*
+
+<!> Programmer = USBasp for arduino Nano ATmega328
+
  Brian Tucker 1-5-2015
  sid-arduino-lib:
  https://code.google.com/p/sid-arduino-lib/

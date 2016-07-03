@@ -1,6 +1,7 @@
 #include <MIDI.h>
 #include "noteList.h"
 #include "pitches.h"
+//#include <Tone.h>
 
 #include <SID.h>
 
@@ -70,6 +71,21 @@ SID mySid;
 int maxmode=4;
 byte mode=0;
 
+int noteVolume=12;
+int noteResonance=10;
+int notePW=10;
+int noteSustain=10;
+int noteFilter=10;
+int switchInPin = 2;   
+
+int state = HIGH;      // the current state of the output pin
+int reading;           // the current reading from the input pin
+int previous = LOW;    // the previous reading from the input pin
+
+// the follow variables are long's because the time, measured in miliseconds,
+// will quickly become a bigger number than can be stored in an int.
+long time = 0;         // the last time the output pin was toggled
+long debounce = 400;   // the debounce time, increase if the output flickers
 
 MIDI_CREATE_DEFAULT_INSTANCE();
 
@@ -80,12 +96,11 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 // tone() function. It also outputs a gate signal for controlling external
 // analog synth components (like envelopes).
 
-
 // <!> Use CHANNEL 1 !!
 
 static const unsigned sGatePin     = 13;
 static const unsigned sAudioOutPin = 9;
-static const unsigned sMaxNumNotes = 16;
+static const unsigned sMaxNumNotes = 30; //16
 MidiNoteList<sMaxNumNotes> midiNotes;
 
 float shifted=0.1f;
@@ -129,7 +144,7 @@ void handleNotesChanged(bool isFirstNote = false)
     if (midiNotes.empty())
     {
         handleGateChanged(false);
-        //noTone(sAudioOutPin);
+        //noTone(sAudioOutPin); //Stops the generation of a square wave triggered by tone(). Has no effect if no tone is being generated. 
       setwaveform_nosound(CHANNEL1);
       //set_frequency(0,CHANNEL1); // change noise generator frequency
     }
@@ -139,7 +154,7 @@ void handleNotesChanged(bool isFirstNote = false)
         // Mono Low:  use midiNotes.getLow
         // Mono High: use midiNotes.getHigh
         // Mono Last: use midiNotes.getLast
-
+setwaveform_nosound(CHANNEL1);
         byte currentNote = 0;
         if (midiNotes.getLast(currentNote))
         {
@@ -210,50 +225,6 @@ void HandleProgramChange (byte channel, byte number)
  
    // READ HF,LF,DR
    // play(25,177,250);
- 
-  mode++; 
-      if (mode==0) {  // triangle
-               BlinkLed(1); 
-                 
-                 // Attack/decay
-              //  mySid.set_register(5,9);
-                //mySid.set_register(5,190);
-                // SUSTAIN/RELEASE
-              //  mySid.set_register(6,9);
-                
-                
-                // Violino (per dire)
-                //mySid.set_register(5,88);
-                //mySid.set_register(6,89);
-               
-                // Piano D=9, il resto zero
-                //mySid.set_register(5,9);
-                //mySid.set_register(6,0);
-                
-               //   mySid.set_register(24,15); // SET MAX VOLUME
-  
-               }
-
-             if (mode==1) { // rectangle
-               BlinkLed(2);            
-               }
-               
-             if (mode==2) {  // saw
-                    BlinkLed(3);             
-               }
-
-             if (mode==3) {  // noise
-
-                              BlinkLed(4);             
-               
-               }
-             if (mode==4) {
-
-                 mode=0;             
-               
-               }
-  Serial.println("Mode: ");  Serial.println(mode);
- {if (mode>maxmode) mode = 0;} //currently has a silent mode at the end so you know where you are : )
 }
 
 
@@ -278,35 +249,140 @@ Serial.begin(31250);
   switch(number) {
 //  case 3: // could trap different controller IDs here
 
-  case 1: // modulation wheel
+  case 1: // modulation wheel E18
    //   BlinkLed(value);   
     // setenvelope(value, CHANNEL1);
     // filter
-    mySid.set_register(17,value);
-    Serial.print(value);
+    mySid.set_register(1,value);
   break;
 
-  case 7: // volume wheel
+  case 07: // volume wheel
     // volume
-      mySid.set_register(24,value); // SET VOLUME
-    Serial.print(value);
+    
+    noteVolume = map(value, 0, 127, 0, 15);
+      mySid.set_register(24,noteVolume); // SET VOLUME
+    mySid.set_register(24,value);   
+    //Serial.print(value);
   break;
-  }
+  
+  
+  case 71: // E10
+      // resonance
+      noteResonance = map(value, 0, 127, 0, 15);
+      
+     mySid.set_register(23,noteResonance);
+
+  break;
+
+  case 72: // E13
+      // filter 1
+      noteFilter = map(value, 0, 127, 0, 15);
+      
+     mySid.set_register(21,noteFilter);
+
+  break;
+
+
+  case 73: // E11
+      // pw low
+      notePW = map(value, 0, 127, 0, 15);
+      
+     mySid.set_register(2,notePW);
+
+  break;
+  
+
+  case 74: // E9
+      // SUSTAIN/RELEASE
+      noteSustain = map(value, 0, 127, 0, 15);
+      
+     mySid.set_register(6,noteSustain);
+    // mySid.set_register(5,value);
+   //   mySid.set_register(24,value); 
+                //mySid.set_register(6,89);
+     //           noteVolume = map(value, 0, 127, 0, 15);
+    //  mySid.set_register(24,noteVolume); // SET VOLUME
+  break;
+    
+  
+  case 75: // E12
+      // pw high
+      notePW = map(value, 0, 127, 0, 15);
+      
+     mySid.set_register(3,notePW);
+
+  break;
+  
+  
+    case 91: // E14
+      // filter 1
+      noteFilter = map(value, 0, 127, 0, 15);
+      
+     mySid.set_register(22,noteFilter);
+
+  break;
+
+  
+  case 21: // E1
+    mode++; 
+      if (mode==0) {  // triangle
+               BlinkLed(1); 
+                 
+                 // Attack/decay
+              //  mySid.set_register(5,9);
+                //mySid.set_register(5,190);
+                // SUSTAIN/RELEASE
+              //  mySid.set_register(6,9);
+                
+                
+                // Violino (per dire)
+                //mySid.set_register(5,88);
+                //mySid.set_register(6,89);
+               
+                // Piano D=9, il resto zero
+                //mySid.set_register(5,9);
+                //mySid.set_register(6,0);
+                
+                  mySid.set_register(24,noteVolume); // SET  VOLUME
+  
+               }
+
+             if (mode==1) { // rectangle
+               BlinkLed(2);            
+               }
+               
+             if (mode==2) {  // saw
+                    BlinkLed(3);             
+               }
+
+             if (mode==3) {  // noise
+
+                     BlinkLed(4);             
+               
+               }
+             if (mode==4) {
+
+                 mode=0;             
+               
+               }
+ // Serial.println("Mode: ");  Serial.println(mode);
+ {if (mode>maxmode) mode = 0;} //currently has a silent mode at the end so you know where you are : )
 
 }
 
+}
 
 
 // ==============
 
 
-void HandlePitchBend (byte channel, int bend)
+void HandlePitchBend (byte channel, int bend)  // E17
 {
 //bend value from +/-8192, translate to 0.1-8 Hz?
 shifted= float ((bend+8500) /2048.f ) +0.1f;  
     // filter
-    mySid.set_register(17,shifted);
-    Serial.print(shifted);
+    mySid.set_register(0,shifted);
+   // Serial.print(shifted);
 
 }
 
@@ -338,12 +414,13 @@ void play(byte hf, byte lf, byte dr){
   mySid.set_register(0,lf);
   // CONTROL REGISTER = 4
   
-  Serial.print(F("HF/LF:"));
-  Serial.print(hf*256+lf);
-  Serial.println("");
+ // Serial.print(F("HF/LF:"));
+ // Serial.print(hf*256+lf);
+//  Serial.println("");
   mySid.set_register(4,33);
   delay(dr*2);
   mySid.set_register(4,32);
+  mySid.set_register(24,noteVolume); // SET VOLUME
 }
 
 void play(byte hf, byte lf, byte dr,byte hf1, byte lf1, byte dr1){
@@ -354,7 +431,11 @@ void play(byte hf, byte lf, byte dr,byte hf1, byte lf1, byte dr1){
 
 void setup()
 {
-    Serial.begin(9600); 
+//    pinMode(switchInPin, INPUT);
+    pinMode(switchInPin, INPUT_PULLUP); // uses internal arduino resistor
+     //  Set MIDI baud rate:
+    //Serial.begin(31250);
+    Serial.begin(38400);
     pinMode(sGatePin,     OUTPUT);
     pinMode(sAudioOutPin, OUTPUT);
     MIDI.setHandleNoteOn(handleNoteOn);
@@ -376,6 +457,7 @@ void setwaveform_triangle(uint8_t channel)
      mySid.set_register(channel+dataset[n], dataset[n+1]); 
      // register address, register content
      n+=2;
+     mySid.set_register(24,noteVolume); // SET VOLUME
   }
 }
 
@@ -391,6 +473,7 @@ void setwaveform_rectangle(uint8_t channel)
      mySid.set_register(channel+dataset[n], dataset[n+1]); 
      // register address, register content
      n+=2;
+     mySid.set_register(24,noteVolume); // SET VOLUME
   }
 }
 
@@ -405,6 +488,7 @@ void setwaveform_sawtooth(uint8_t channel)
      mySid.set_register(channel+dataset[n], dataset[n+1]); 
      // register address, register content
      n+=2;
+     mySid.set_register(24,noteVolume); // SET VOLUME
   }
 }
 
@@ -419,6 +503,7 @@ void setwaveform_noise(uint8_t channel)
      mySid.set_register(channel+dataset[n], dataset[n+1]); 
      // register address, register content
      n+=2;
+     mySid.set_register(24,noteVolume); // SET VOLUME
   }
 }
 
@@ -446,6 +531,55 @@ void set_frequency(uint16_t pitch,uint8_t channel)
     }
 
 
+void changeMode()
+{
+    mode++; 
+    Serial.println("Mode: ");  Serial.println(mode);
+      if (mode==0) {  // triangle
+               BlinkLed(1); 
+                 
+                 // Attack/decay
+              //  mySid.set_register(5,9);
+                //mySid.set_register(5,190);
+                // SUSTAIN/RELEASE
+              //  mySid.set_register(6,9);
+                
+                
+                // Violino (per dire)
+                //mySid.set_register(5,88);
+                //mySid.set_register(6,89);
+               
+                // Piano D=9, il resto zero
+                //mySid.set_register(5,9);
+                //mySid.set_register(6,0);
+                
+                  mySid.set_register(24,noteVolume); // SET  VOLUME
+  
+               }
+
+             if (mode==1) { // rectangle
+        setwaveform_rectangle(CHANNEL1); 
+               BlinkLed(2);     
+      
+               }
+               
+             if (mode==2) {  // saw
+             setwaveform_sawtooth(CHANNEL1);
+                    BlinkLed(3);             
+               }
+
+             if (mode==3) {  // noise
+setwaveform_noise(CHANNEL1);
+                     BlinkLed(4);             
+               
+               }
+             if (mode==4) {
+setwaveform_triangle(CHANNEL1);
+                 mode=0;             
+               
+               }
+               setwaveform_nosound(CHANNEL1);
+}
 
 uint8_t zufall()
 {
@@ -481,17 +615,36 @@ uint8_t zufall()
 
 void loop()
 {
+     reading = digitalRead(switchInPin);
     MIDI.read();
   uint16_t n;
   uint8_t flag,k;
   uint16_t soundindex=0;
-
+  mySid.set_register(24,noteVolume); // SET VOLUME
   
 
 //  setwaveform_triangle(CHANNEL1);
 //  setwaveform_triangle(CHANNEL2);
 //  setwaveform_triangle(CHANNEL3);
-    
 
-}
+// switch
+
+ // if the input just went from LOW and HIGH and we've waited long enough
+  // to ignore any noise on the circuit, toggle the output pin and remember
+  // the time
+  if (reading == HIGH  ) {
+   
+    Serial.println(reading);
+  }
+    else
+      { setwaveform_nosound(CHANNEL1);
+         changeMode();
+      }
+
+  //  time = millis();    
+  }
+
+   // previous = reading;
+
+
 
