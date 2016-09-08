@@ -73,10 +73,12 @@ byte mode=0;
 
 int noteVolume=12;
 int noteResonance=10;
-int notePW=10;
-int noteSustain=10;
-int noteFilter=10;
+int notePW=12;
+int noteSustain=12;
+int noteFilter=12;
 int switchInPin = 2;   
+
+byte inChannel = 1; // we can't change channel here at the moment
 
 int state = HIGH;      // the current state of the output pin
 int reading;           // the current reading from the input pin
@@ -112,9 +114,9 @@ void BlinkLed(byte num)         // Basic blink function
     for (byte i=0;i<num;i++)
     {
         digitalWrite(LED,HIGH);
-        delay(100);
+        delay(200);
         digitalWrite(LED,LOW);
-        delay(100);
+        delay(200);
     }
 }
 
@@ -171,7 +173,8 @@ setwaveform_nosound(CHANNEL1);
               set_frequency(sNotePitches[currentNote],CHANNEL2); // change noise generator frequency
               set_frequency(sNotePitches[currentNote],CHANNEL3); // change noise generator frequency
               
-              */
+              */  
+              // DURING NOTE CHANGE (not mode change)
                if (mode==0) {
                setwaveform_triangle(CHANNEL1);
               // setwaveform_rectangle(CHANNEL1);
@@ -180,12 +183,11 @@ setwaveform_nosound(CHANNEL1);
 
              if (mode==1) {
                setwaveform_rectangle(CHANNEL1);
-   
                }
                
              if (mode==2) {
                setwaveform_sawtooth(CHANNEL1);
-            
+               setwaveform_triangle(CHANNEL2);
                }
 
              if (mode==3) {
@@ -193,11 +195,11 @@ setwaveform_nosound(CHANNEL1);
                }
 
              if (mode==4) {
-               setwaveform_triangle(CHANNEL1);
+               mode=0;
                }
                
               set_frequency(sNotePitches[currentNote],CHANNEL1); // change noise generator frequency
-                      
+               set_frequency(sNotePitches[currentNote],CHANNEL2);       
                
              
                  // n=zufall()*2;
@@ -225,6 +227,7 @@ void HandleProgramChange (byte channel, byte number)
  
    // READ HF,LF,DR
    // play(25,177,250);
+   changeMode();
 }
 
 
@@ -286,8 +289,7 @@ Serial.begin(31250);
   case 73: // E11
       // pw low
       notePW = map(value, 0, 127, 0, 15);
-      
-     mySid.set_register(2,notePW);
+      mySid.set_register(2,notePW);
 
   break;
   
@@ -308,7 +310,6 @@ Serial.begin(31250);
   case 75: // E12
       // pw high
       notePW = map(value, 0, 127, 0, 15);
-      
      mySid.set_register(3,notePW);
 
   break;
@@ -324,47 +325,9 @@ Serial.begin(31250);
 
   
   case 21: // E1
-    mode++; 
-      if (mode==0) {  // triangle
-               BlinkLed(1); 
-                 
-                 // Attack/decay
-              //  mySid.set_register(5,9);
-                //mySid.set_register(5,190);
-                // SUSTAIN/RELEASE
-              //  mySid.set_register(6,9);
-                
-                
-                // Violino (per dire)
-                //mySid.set_register(5,88);
-                //mySid.set_register(6,89);
-               
-                // Piano D=9, il resto zero
-                //mySid.set_register(5,9);
-                //mySid.set_register(6,0);
-                
-                  mySid.set_register(24,noteVolume); // SET  VOLUME
-  
-               }
-
-             if (mode==1) { // rectangle
-               BlinkLed(2);            
-               }
-               
-             if (mode==2) {  // saw
-                    BlinkLed(3);             
-               }
-
-             if (mode==3) {  // noise
-
-                     BlinkLed(4);             
-               
-               }
-             if (mode==4) {
-
-                 mode=0;             
-               
-               }
+  setwaveform_nosound(CHANNEL1);
+    changeMode();
+  break;
  // Serial.println("Mode: ");  Serial.println(mode);
  {if (mode>maxmode) mode = 0;} //currently has a silent mode at the end so you know where you are : )
 
@@ -536,6 +499,7 @@ void changeMode()
     mode++; 
     Serial.println("Mode: ");  Serial.println(mode);
       if (mode==0) {  // triangle
+          setwaveform_triangle(CHANNEL1); 
                BlinkLed(1); 
                  
                  // Attack/decay
@@ -554,18 +518,21 @@ void changeMode()
                 //mySid.set_register(6,0);
                 
                   mySid.set_register(24,noteVolume); // SET  VOLUME
+
   
                }
 
              if (mode==1) { // rectangle
-        setwaveform_rectangle(CHANNEL1); 
+                setwaveform_rectangle(CHANNEL1); 
+               mySid.set_register(2,13);  // notePW low
+               mySid.set_register(3,13);  // notePW high
                BlinkLed(2);     
-      
+                     
                }
                
              if (mode==2) {  // saw
-             setwaveform_sawtooth(CHANNEL1);
-                    BlinkLed(3);             
+                 setwaveform_sawtooth(CHANNEL1);
+                    BlinkLed(3);           
                }
 
              if (mode==3) {  // noise
@@ -574,8 +541,7 @@ setwaveform_noise(CHANNEL1);
                
                }
              if (mode==4) {
-setwaveform_triangle(CHANNEL1);
-                 mode=0;             
+                 mode=-1;             
                
                }
                setwaveform_nosound(CHANNEL1);
