@@ -80,8 +80,8 @@ int noteResonance=10;
 int notePW=12;
 int noteSustain=12;
 int noteFilter=12;
-int switchInPin = 6;   // 2 on other shield  //6
-#define LED 8                   // 13 on other shield //8
+int switchInPin = 6;   // 2 on previous shield  
+#define LED 8          // 13 on previous shield 
 
 int state = HIGH;      // the current state of the output pin
 int reading;           // the current reading from the input pin
@@ -205,8 +205,8 @@ void handleNotesChanged(bool isFirstNote = false)
                }
                
               set_frequency(sNotePitches[currentNote],CHANNEL1); // change noise generator frequency
-               set_frequency(sNotePitches[currentNote],CHANNEL2);       
-               
+              set_frequency(sNotePitches[currentNote],CHANNEL2);       
+              set_frequency(sNotePitches[currentNote],CHANNEL3); 
              
                  // n=zufall()*2;
                  // set_frequency(n*17,CHANNEL2); // change noise generator frequency
@@ -377,6 +377,7 @@ void handleNoteOff(byte inChannel, byte inNote, byte inVelocity)
 // -----------------------------------------------------------------------------
 
 
+//<!> play is used for direct playing notes from arduino, not from MIDI
 void play(byte hf, byte lf, byte dr){
   
   mySid.set_register(1,hf);
@@ -386,7 +387,7 @@ void play(byte hf, byte lf, byte dr){
  // Serial.print(F("HF/LF:"));
  // Serial.print(hf*256+lf);
 //  Serial.println("");
-  mySid.set_register(4,33);
+  mySid.set_register(4,33);  // wave form
   delay(dr*2);
   mySid.set_register(4,32);
   mySid.set_register(24,noteVolume); // SET VOLUME
