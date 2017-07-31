@@ -18,11 +18,11 @@
 
 ****************************************************************************
 
-	date	authors					version		comment
+	date	     authors					   version		   comment
 	======	======================	=======		==============================
-	2007 	(ch) Christoph Haberer	V1.0		First implementation
-	2012 	Mario Patino    	    V1.1		Adapted for Arduino SID Library
-    2015    Eric Forgeot            V1.2        Adapted for midi input
+	2007 	  (ch) Christoph Haberer	V1.0		    First implementation
+	2012 	   Mario Patino    	      V1.1		    Adapted for Arduino SID Library
+  2015-2017  Eric Forgeot         V1.3        Adapted for midi input (monophonic + one channel only)
 
 	Versions:
 
@@ -63,6 +63,10 @@
 
 #define SETNOSOUND_1 	4,0x00,5,0xBB,6,0xAD, // SID register setup to create no sound
 
+byte inChannel = 1; // we can't change channel here at the moment
+byte inChannel2 = 2; // we can't change channel here at the moment
+byte inChannel3 = 3; // we can't change channel here at the moment
+
 SID mySid;
 
 // SID END
@@ -76,9 +80,8 @@ int noteResonance=10;
 int notePW=12;
 int noteSustain=12;
 int noteFilter=12;
-int switchInPin = 2;   
-
-byte inChannel = 1; // we can't change channel here at the moment
+int switchInPin = 6;   // 2 on other shield  //6
+#define LED 8                   // 13 on other shield //8
 
 int state = HIGH;      // the current state of the output pin
 int reading;           // the current reading from the input pin
@@ -107,7 +110,6 @@ MidiNoteList<sMaxNumNotes> midiNotes;
 
 float shifted=0.1f;
 
-#define LED 13                   // LED pin on Arduino Uno
 
 void BlinkLed(byte num)         // Basic blink function
 {
@@ -148,6 +150,8 @@ void handleNotesChanged(bool isFirstNote = false)
         handleGateChanged(false);
         //noTone(sAudioOutPin); //Stops the generation of a square wave triggered by tone(). Has no effect if no tone is being generated. 
       setwaveform_nosound(CHANNEL1);
+      setwaveform_nosound(CHANNEL2);
+      setwaveform_nosound(CHANNEL3);
       //set_frequency(0,CHANNEL1); // change noise generator frequency
     }
     else
@@ -156,7 +160,9 @@ void handleNotesChanged(bool isFirstNote = false)
         // Mono Low:  use midiNotes.getLow
         // Mono High: use midiNotes.getHigh
         // Mono Last: use midiNotes.getLast
-setwaveform_nosound(CHANNEL1);
+        setwaveform_nosound(CHANNEL1);
+        setwaveform_nosound(CHANNEL2);
+        setwaveform_nosound(CHANNEL3);
         byte currentNote = 0;
         if (midiNotes.getLast(currentNote))
         {
