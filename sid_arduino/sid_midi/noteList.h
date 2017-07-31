@@ -83,6 +83,7 @@ private:
     Cell* mHead;
     Cell* mTail;
     byte mSize;
+   
 };
 
 // ########################################################################## //
@@ -389,3 +390,7 @@ inline void MidiNoteList<Size>::print() const
 //    AVR_LOG(" ]");
 //#endif
 }
+
+
+
+
