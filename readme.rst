@@ -12,10 +12,8 @@ The Commodore 64 Music Book
 
 The Commodore 64 Music Book can be found there:
 
-http://www.bombjack.org/commodore/books.htm#GRAPHICS_AND_SOUND
 
-(direct link: 
-http://www.bombjack.org/commodore/books/pdf/The_Commodore_64_Music_Book.zip)
+- https://archive.org/details/The_Commodore_64_Music_Book
 
 It is a valuable tool for learning how the 6581 SID chip works.
 
