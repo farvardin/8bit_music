@@ -1,7 +1,8 @@
 
 
 
-## Arkos Tracker 2 music export
+## Arkos Tracker 2 music export
+
 
 
 [Arkos Tracker 2](http://www.julien-nevo.com/arkostracker) is a AY-3-8912 and YM2149 soundchip tracker, for making chiptunes.
@@ -19,7 +20,7 @@ You might need those piece of software:
 - zmakebas (`sudo apt install zmakebas` on Debian based distributions)
 
 
-### Spectrum
+### Spectrum
 
 
 - Export first the music from Arkos Tracker 2 as AKG in "asm source file" option.
@@ -41,7 +42,7 @@ run ./compile.sh
 it will result in a music.sna and music.tap which you can load into your spectrum.
 
 
-## Amstrad
+### Amstrad
 
 - Export first the music from Arkos Tracker 2 as AKG in "asm source file" option.
 
@@ -66,7 +67,7 @@ read more on http://www.julien-nevo.com/arkostracker/index.php/basic-cpc-integra
 
 
 
-## Garvuino 
+### Garvuino 
 
 use Ay_Emul.exe to convert to psg
 
@@ -76,7 +77,7 @@ then AYPlayer.exe (avray.ru) to convert into .rsf for garvuino
 
 
 
-## Licence 
+## Licence 
 
 - The PlayerAkg is from the http://www.julien-nevo.com/arkostracker website and is: 
 
