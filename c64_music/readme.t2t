@@ -28,6 +28,10 @@ You can also directly run the compiled .prg files with the Vice emulator.
 - On Linux / Unix just run ./compile_all.sh and it will regenerated all files into the prg folder.
 
 
+To run the .prg with the vice emulator, type ``x64 -autostartprgmode 1 your_program.prg``
+
+
+
 === SID + Arduino ===
 
 We're hosting here at the moment two different projects:
